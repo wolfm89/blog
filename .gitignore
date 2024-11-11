@@ -1,0 +1,20 @@
+# Hugo build files
+/public/
+/resources/_gen/
+/hugo_stats.json
+
+# Node modules
+/node_modules/
+/npm-debug.log*
+/yarn-error.log*
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+
+# Hugo configuration files
+.hugo_build.lock
