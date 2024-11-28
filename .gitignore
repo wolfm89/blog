@@ -18,3 +18,6 @@ Thumbs.db
 
 # Hugo configuration files
 .hugo_build.lock
+
+# Draw.io backup files
+*.bkp
