@@ -75,4 +75,46 @@ In AWS Bedrock terms, the RAG approach involves the following components:
 ## Terraform Module
 
 I mostly rely on Terraform to manage infrastructure as code. To simplify the setup of a Bedrock knowledge base, I created a Terraform module that encapsulates the necessary resources.
-The module does not cover the setup of a vector database but focuses on creating the knowledge base and data sources as well as configuring the embedding model and foundation model.
+The module does not cover the setup of a vector database but focuses on creating the knowledge base and data sources as well as configuring the embedding model.
+
+The module is available on GitHub [terraform-aws-bedrock-knowledge-base](https://github.com/wolfm89/terraform-aws-bedrock-knowledge-base) and follows the structure of the [Terraform AWS community modules](https://github.com/terraform-aws-modules).
+A sample usage of the module is shown below:
+
+```hcl
+module "knowledge_base" {
+  source = "github.com/wolfm89/terraform-aws-bedrock-knowledge-base"
+
+  name            = "knowledge-base"
+  embedding_model = "amazon.titan-embed-text-v2:0"
+
+  storage_type = "OPENSEARCH_SERVERLESS"
+  opensearch_serverless_config = {
+    collection_arn    = "arn:aws:aoss:eu-central-1:123456789012:collection/w3vefn2ijps5xj0j9x6f"
+    vector_index_name = "knowledge-base-index"
+    field_mapping = {
+      vector_field   = "vector"
+      metadata_field = "metadata"
+      text_field     = "text"
+    }
+  }
+
+  data_source_configurations = {
+    "source1" = {
+      bucket                   = "my-bucket"
+      bucket_paths             = ["source1"]
+      chunking_strategy        = "FIXED_SIZE"
+      fixed_max_tokens         = 300
+      fixed_overlap_percentage = 10
+    }
+  }
+}
+```
+
+A full example, including the setup of a vector database (Amazon OpenSearch Service) and an Amazon S3 bucket for storing the raw data,
+can be found in the [examples/oss-complete](https://github.com/wolfm89/terraform-aws-bedrock-knowledge-base/blob/main/examples/oss-complete/README.md) folder.
+
+The module supports the configuration of multiple data sources, different embedding models, and various storage types.
+Its main benefit lies in taking care of the necessary IAM roles, policies, and service integrations, allowing users to focus on the core configuration.
+
+For more information on how to configure the different storage types, have a look at the Terraform documentation for the Bedrock knowledge base [`bedrockagent_knowledge_base`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/bedrockagent_knowledge_base#storage_configuration-block).
+Also check out the documentation about the different chunking strategies for data sources [`aws_bedrockagent_data_source`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/bedrockagent_data_source#chunking_configuration-block).
