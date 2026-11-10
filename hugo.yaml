@@ -40,7 +40,7 @@ params:
         <circle cx="29" cy="44" r="5" fill="var(--logo-accent)" stroke="var(--logo-node-ring)" stroke-width="3"/>
       </svg>
   images:
-    - /images/og-default-v2.jpg
+    - /images/og-default.jpg
   mainSections:
     - posts
   DateFormat: "January 2, 2006"
