@@ -1,13 +1,21 @@
-# Workflow for building and deploying a Hugo site to GitHub Pages
+# Deploy the Hugo site to GitHub Pages.
+#
+# PaperMod uses plain CSS, so Dart Sass is not needed. Installing it via snap
+# on GitHub-hosted runners can hang in "Waiting for automatic snap restart".
 name: Deploy Hugo site to Pages
 
 on:
-  # Runs on pushes targeting the default branch
+  # Deploy on pushes to the default branch.
   push:
     branches:
       - main
 
-  # Allows to run this workflow manually from the Actions tab
+  # Build pull requests for validation, but do not deploy them.
+  pull_request:
+    branches:
+      - main
+
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
@@ -16,8 +24,9 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Allow only one concurrent deployment, skipping runs queued between the
+# in-progress and latest queued run. Do not cancel in-progress runs: a Pages
+# deployment should be allowed to finish once it has started.
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -31,28 +40,30 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
-    env:
-      HUGO_VERSION: 0.169.0
+    # Fail fast if a step hangs instead of blocking the Pages concurrency group.
+    timeout-minutes: 10
     steps:
-      - name: Install Hugo CLI
-        run: |
-          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
-          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
-      - name: Install Dart Sass
-        run: sudo snap install dart-sass
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          # PaperMod is a git submodule.
           submodules: recursive
+          # Full history makes date/lastmod information reliable.
           fetch-depth: 0
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "0.169.0"
+          # The extended binary is what Hugo's official Pages setup uses.
+          extended: true
+
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v6
-      - name: Install Node.js dependencies
-        run: "[[ -f package-lock.json || -f npm-shrinkwrap.json ]] && npm ci || true"
+
       - name: Build with Hugo
         env:
-          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
           HUGO_ENVIRONMENT: production
           TZ: Europe/Berlin
         run: |
@@ -60,6 +71,7 @@ jobs:
             --gc \
             --minify \
             --baseURL "${{ steps.pages.outputs.base_url }}/"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:
@@ -67,10 +79,13 @@ jobs:
 
   # Deployment job
   deploy:
+    # Builds run for pull requests, but only main may publish.
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: build
     steps:
       - name: Deploy to GitHub Pages
