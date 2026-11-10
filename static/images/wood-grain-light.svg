@@ -1,3 +1,4 @@
+<!-- Faint background texture used by assets/css/extended/forest.css. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" fill="none" stroke="#7a5c3e">
   <g stroke-width="1.1">
     <path d="M-80 60C160 20 340 120 580 72S980 10 1280 78" stroke-opacity=".10"/>
