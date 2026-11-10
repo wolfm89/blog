@@ -29,7 +29,7 @@ adding a file and some text.
 
 - **Hugo 0.169.0** with the extended binary
 - **PaperMod** with a custom warm paper / forest theme
-- **IBM Plex Sans** for reading and **Fraunces** for display headings
+- **IBM Plex Sans** for reading and **Fraunces** for display headings, both self-hosted
 - **GitHub Actions** for validation and deployment
 - **GitHub Pages** with a custom domain and HTTPS
 - Built-in search, RSS, sitemap and taxonomies
@@ -86,9 +86,19 @@ The custom theme lives in `assets/css/extended/`:
 | --- | --- |
 | `theme-vars.css` | Palette, fonts, radii, shadows and light/dark tokens |
 | `forest.css` | Header, profile, cards, post typography, tags, search, footer and 404 |
+| `fonts.css` | `@font-face` rules for the self-hosted fonts |
 
-Fonts are loaded in `layouts/_partials/extend_head.html`. The theme supports light,
-dark and automatic mode, and follows `prefers-reduced-motion`.
+The fonts are self-hosted: the WOFF2 files and their SIL Open Font License texts are in
+`static/fonts/`, and `layouts/_partials/extend_head.html` preloads the two used on every
+page. They are the Latin and Latin Extended subsets from Fontsource 5.3.0; Fraunces is
+instanced at weight 600 with its optical-size axis kept, matching what the site used from
+Google Fonts:
+
+```sh
+fonttools varLib.instancer fraunces-latin-opsz-normal.woff2 wght=600 -o fraunces-latin-opsz-600.woff2
+```
+
+The theme supports light, dark and automatic mode, and follows `prefers-reduced-motion`.
 
 The palette is warm paper (`#efece0`), card surface (`#fffdf8`), forest (`#3f6b45`),
 sage (`#6d9e51`) and wood (`#a9805a`). In dark mode the page goes to a deep forest night
@@ -97,6 +107,18 @@ sage (`#6d9e51`) and wood (`#a9805a`). In dark mode the page goes to a deep fore
 The faint wood-grain background lines are the two SVGs in
 `static/images/wood-grain-{light,dark}.svg`. Their strokes are intentionally 5–11% opaque;
 CSS applies the final 0.4 (light) / 0.16 (dark) layer opacity.
+
+## Privacy
+
+The blog sets no cookies, loads nothing from third parties and has no analytics. The only
+thing stored in the browser is PaperMod's colour-scheme choice (`pref-theme` in
+`localStorage`). `layouts/_partials/footer.html` overrides PaperMod's footer only to drop
+the script that saved the menu's scroll position in `localStorage`; re-diff it against
+`themes/PaperMod/layouts/_partials/footer.html` after updating the theme.
+
+The footer links the shared [legal notice](https://wolfgangmoser.eu/legal-notice/) and
+[privacy policy](https://wolfgangmoser.eu/privacy-policy/) on wolfgangmoser.eu (set in
+`hugo.yaml` under `params.footer.text`). Update the policy when anything above changes.
 
 ## Deployment
 
@@ -111,9 +133,9 @@ CSS applies the final 0.4 (light) / 0.16 (dark) layer opacity.
 | Path | Purpose |
 | --- | --- |
 | `content/` | Posts, About and section pages |
-| `layouts/` | Homepage recent posts, single-page and 404 overrides |
+| `layouts/` | Homepage recent posts, single-page, footer and 404 overrides |
 | `assets/` | Theme CSS and source images |
-| `static/` | Favicons, social image and background textures |
+| `static/` | Favicons, fonts, social image and background textures |
 | `themes/PaperMod/` | PaperMod theme |
 
 ## Elsewhere
