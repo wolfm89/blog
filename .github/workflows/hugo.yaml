@@ -5,8 +5,13 @@
 name: Deploy Hugo site to Pages
 
 on:
-  # Runs on pushes targeting the default branch
+  # Deploy on pushes to the default branch.
   push:
+    branches:
+      - main
+
+  # Build pull requests for validation, but do not deploy them.
+  pull_request:
     branches:
       - main
 
@@ -74,6 +79,8 @@ jobs:
 
   # Deployment job
   deploy:
+    # Builds run for pull requests, but only main may publish.
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
