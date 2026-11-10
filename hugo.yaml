@@ -94,6 +94,10 @@ params:
   socialIcons:
     - name: github
       url: "https://github.com/wolfm89"
+      title: GitHub
+    - name: linkedin
+      url: "https://www.linkedin.com/in/wolfgang-moser/"
+      title: LinkedIn
 
   footer:
     text: "[Train Price Monitor](https://tpm.wolfgangmoser.eu)"

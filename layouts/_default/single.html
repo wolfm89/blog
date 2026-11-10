@@ -42,6 +42,13 @@
   </div>
   {{- end }}
 
+  {{- if eq .RelPermalink "/about/" }}
+  <div class="about-social">
+    <p>Find me on</p>
+    {{- partial "social_icons.html" (dict) }}
+  </div>
+  {{- end }}
+
   {{- partial "extend_post_content.html" . }}
 
   <footer class="post-footer">
