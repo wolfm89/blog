@@ -11,6 +11,9 @@
 # Logs
 *.log
 
+# Playwright MCP artifacts
+/.playwright-mcp/
+
 # OS generated files
 .DS_Store
 Thumbs.db
