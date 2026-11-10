@@ -1,0 +1,41 @@
+{{- define "main" }}
+
+{{- if site.Params.profileMode.enabled }}
+{{- partial "index_profile.html" . }}
+{{- else if site.Params.homeInfoParams }}
+{{- partial "home_info.html" . }}
+{{- end }}
+
+{{- $mainSections := site.Params.mainSections | default (slice "posts") }}
+{{- $posts := where site.RegularPages "Type" "in" $mainSections }}
+{{- $posts = where $posts "Params.hiddenInHomeList" "!=" true }}
+{{- $recent := first 5 $posts.ByDate.Reverse }}
+
+{{- with $recent }}
+<section class="home-recent" aria-labelledby="recent-posts-title">
+  <h2 id="recent-posts-title" class="home-recent-title">Recent posts</h2>
+  <div class="home-recent-list">
+    {{- range . }}
+    <article class="post-entry">
+      <header class="entry-header">
+        <h3 class="entry-hint-parent">{{ .Title }}</h3>
+      </header>
+      {{- if (ne (.Param "hideSummary") true) }}
+      <div class="entry-content">
+        <p>{{ .Summary | plainify | htmlUnescape }}{{ if .Truncated }}...{{ end }}</p>
+      </div>
+      {{- end }}
+      {{- if not (.Param "hideMeta") }}
+      <footer class="entry-footer">
+        {{- partial "post_meta.html" . -}}
+      </footer>
+      {{- end }}
+      <a class="entry-link" aria-label="post link to {{ .Title | plainify }}" href="{{ .Permalink }}"></a>
+    </article>
+    {{- end }}
+  </div>
+  <p class="home-all-posts"><a href="{{ "posts/" | relURL }}">All posts →</a></p>
+</section>
+{{- end }}
+
+{{- end }}

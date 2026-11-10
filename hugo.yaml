@@ -1,8 +1,9 @@
 baseURL: 'https://blog.wolfgangmoser.eu/'
-languageCode: en-us
 title: Public Memory
 theme: PaperMod
-paginate: 10
+
+pagination:
+  pagerSize: 10
 
 enableRobotsTXT: true
 buildDrafts: false
@@ -25,6 +26,10 @@ params:
   description: "Notes to myself, but public"
   keywords: [Blog, Cloud, AWS, Code, Software, IT]
   author: Wolfgang Moser
+  images:
+    - /images/og-default.jpg
+  mainSections:
+    - posts
   DateFormat: "January 2, 2006"
   defaultTheme: auto # dark, light
   disableThemeToggle: false
@@ -71,6 +76,8 @@ params:
     buttons:
       - name: Posts
         url: posts
+      - name: Train Price Monitor
+        url: https://tpm.wolfgangmoser.eu
       # - name: Tags
       #   url: tags
 
@@ -82,6 +89,9 @@ params:
   socialIcons:
     - name: github
       url: "https://github.com/wolfm89"
+
+  footer:
+    text: "[Train Price Monitor](https://tpm.wolfgangmoser.eu)"
 
   # analytics:
   #   google:
@@ -119,9 +129,22 @@ outputs:
     - RSS
     - JSON # necessary for search
 
+related:
+  includeNewer: true
+  threshold: 80
+  toLower: false
+  indices:
+    - name: tags
+      weight: 100
+    - name: keywords
+      weight: 50
+    - name: date
+      weight: 10
+
 languages:
   en:
-    languageName: "English"
+    label: "English"
+    locale: "en-US"
     weight: 1
     taxonomies:
       category: categories
