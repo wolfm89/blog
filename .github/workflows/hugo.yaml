@@ -5,40 +5,52 @@
 name: Deploy Hugo site to Pages
 
 on:
+  # Runs on pushes targeting the default branch
   push:
     branches:
       - main
 
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Allow only one concurrent deployment, skipping runs queued between the
+# in-progress and latest queued run. Do not cancel in-progress runs: a Pages
+# deployment should be allowed to finish once it has started.
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
+# Default to bash
 defaults:
   run:
     shell: bash
 
 jobs:
+  # Build job
   build:
     runs-on: ubuntu-latest
+    # Fail fast if a step hangs instead of blocking the Pages concurrency group.
     timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          # PaperMod is a git submodule.
           submodules: recursive
+          # Full history makes date/lastmod information reliable.
           fetch-depth: 0
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
         with:
           hugo-version: "0.169.0"
+          # The extended binary is what Hugo's official Pages setup uses.
           extended: true
 
       - name: Setup Pages
@@ -60,6 +72,7 @@ jobs:
         with:
           path: ./public
 
+  # Deployment job
   deploy:
     environment:
       name: github-pages
