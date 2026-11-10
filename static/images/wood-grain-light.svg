@@ -1,0 +1,23 @@
+<!-- Faint background texture used by assets/css/extended/forest.css. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" fill="none" stroke="#7a5c3e">
+  <g stroke-width="1.1">
+    <path d="M-80 60C160 20 340 120 580 72S980 10 1280 78" stroke-opacity=".10"/>
+    <path d="M-80 108C170 66 350 168 600 118S1000 56 1280 124" stroke-opacity=".07"/>
+    <path d="M-80 158C140 124 330 216 590 166S1010 104 1280 176" stroke-opacity=".11"/>
+    <path d="M-80 214C180 166 360 268 610 214S1020 152 1280 226" stroke-opacity=".06"/>
+    <path d="M-80 272C150 232 340 322 600 274S1020 214 1280 282" stroke-opacity=".09"/>
+    <path d="M-80 332C190 284 360 382 620 330S1030 272 1280 340" stroke-opacity=".06"/>
+    <path d="M-80 392C160 352 350 442 610 394S1020 334 1280 402" stroke-opacity=".10"/>
+    <path d="M-80 452C180 404 360 502 620 450S1030 392 1280 460" stroke-opacity=".06"/>
+    <path d="M-80 512C150 472 340 562 600 514S1020 454 1280 522" stroke-opacity=".09"/>
+    <path d="M-80 572C190 524 360 622 620 570S1030 512 1280 580" stroke-opacity=".06"/>
+    <path d="M-80 632C160 592 350 682 610 634S1020 574 1280 642" stroke-opacity=".10"/>
+    <path d="M-80 692C180 644 360 742 620 690S1030 632 1280 700" stroke-opacity=".06"/>
+    <path d="M-80 752C150 712 340 802 600 754S1020 694 1280 762" stroke-opacity=".08"/>
+  </g>
+  <g stroke-width="1.4">
+    <path d="M878 430c-44-58 12-128 74-122 60 6 104 54 92 112-14 68-92 104-148 72-52-30-62-102-20-148" stroke-opacity=".10"/>
+    <path d="M894 432c-31-42 10-92 54-88 43 4 76 40 68 82-10 50-68 76-108 52-38-22-45-74-14-106" stroke-opacity=".08"/>
+    <path d="M910 434c-18-25 7-56 34-53 26 2 48 24 42 50-6 30-42 48-66 33-24-14-29-46-10-66" stroke-opacity=".07"/>
+  </g>
+</svg>
