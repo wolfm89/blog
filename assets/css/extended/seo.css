@@ -48,3 +48,9 @@
 .related-posts li {
   margin: 0.25rem 0;
 }
+
+/* Keep PaperMod's border highlight on hover, but remove the lift */
+.post-entry:hover,
+.post-entry:focus-within {
+  transform: none;
+}
