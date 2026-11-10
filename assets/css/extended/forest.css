@@ -67,6 +67,11 @@ body {
   letter-spacing: -0.02em;
 }
 
+/* The homepage hero already shows the site title; keep only the mark there. */
+body:has(.profile) .logo a {
+  font-size: 0;
+}
+
 .logo a svg {
   color: var(--primary);
 }
