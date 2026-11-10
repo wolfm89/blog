@@ -39,7 +39,10 @@ adding a file and some text.
 
 <h2 align="center">Local development</h2>
 
+Clone with the theme submodule included, or initialize it in an existing checkout:
+
 ```sh
+git submodule update --init --recursive
 hugo server
 ```
 
