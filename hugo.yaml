@@ -1,6 +1,7 @@
 baseURL: 'https://blog.wolfgangmoser.eu/'
 title: Public Memory
 theme: PaperMod
+titleCaseStyle: none
 
 pagination:
   pagerSize: 10
