@@ -1,3 +1,18 @@
+/* Theme-aware logo accent: darker green on dark backgrounds */
+:root {
+  --logo-accent: #3aac75;
+}
+
+[data-theme="dark"] {
+  --logo-accent: #1f6f4a;
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"] {
+    --logo-accent: #1f6f4a;
+  }
+}
+
 /* Home page: compact profile hero + recent posts */
 .main .profile {
   min-height: auto;
