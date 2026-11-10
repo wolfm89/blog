@@ -69,3 +69,18 @@
 .post-entry:focus-within {
   transform: none;
 }
+
+/* About page: social links using the same PaperMod icons as the home page */
+.about-social {
+  margin-top: calc(var(--gap) * 2);
+}
+
+.about-social p {
+  margin: 0 0 0.25rem;
+  color: var(--secondary);
+  font-size: 14px;
+}
+
+.about-social .social-icons a:first-of-type {
+  padding-inline-start: 0;
+}
