@@ -100,7 +100,7 @@ params:
       title: LinkedIn
 
   footer:
-    text: "[Train Price Monitor](https://tpm.wolfgangmoser.eu) · [wolfgangmoser.eu](https://wolfgangmoser.eu)"
+    text: "[Train Price Monitor](https://tpm.wolfgangmoser.eu) · [wolfgangmoser.eu](https://wolfgangmoser.eu) · [Impressum / Legal Notice](https://wolfgangmoser.eu/legal-notice/) · [Datenschutz / Privacy Policy](https://wolfgangmoser.eu/privacy-policy/)"
 
   # analytics:
   #   google:
