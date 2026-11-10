@@ -1,8 +1,10 @@
 baseURL: 'https://blog.wolfgangmoser.eu/'
-languageCode: en-us
 title: Public Memory
 theme: PaperMod
-paginate: 10
+titleCaseStyle: none
+
+pagination:
+  pagerSize: 10
 
 enableRobotsTXT: true
 buildDrafts: false
@@ -25,6 +27,22 @@ params:
   description: "Notes to myself, but public"
   keywords: [Blog, Cloud, AWS, Code, Software, IT]
   author: Wolfgang Moser
+  label:
+    text: Public Memory
+    iconSVG: |
+      <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <path d="M39 4v14h14L39 4Z" fill="var(--logo-accent)"/>
+        <path d="M15 4h24l14 14v38a4 4 0 0 1-4 4H15a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/>
+        <path d="M39 4v14h14" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M22 25 42 33M22 25l7 19M42 33l-13 11" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
+        <circle cx="22" cy="25" r="5" fill="var(--logo-accent)" stroke="currentColor" stroke-width="3"/>
+        <circle cx="42" cy="33" r="5" fill="var(--logo-accent)" stroke="currentColor" stroke-width="3"/>
+        <circle cx="29" cy="44" r="5" fill="var(--logo-accent)" stroke="currentColor" stroke-width="3"/>
+      </svg>
+  images:
+    - /images/og-default.jpg
+  mainSections:
+    - posts
   DateFormat: "January 2, 2006"
   defaultTheme: auto # dark, light
   disableThemeToggle: false
@@ -45,14 +63,13 @@ params:
   showtoc: false
   tocopen: false
 
-  # assets:
-  #   # disableHLJS: true # to disable highlight.js
-  #   # disableFingerprinting: true
-  #   favicon: "<link / abs url>"
-  #   favicon16x16: "<link / abs url>"
-  #   favicon32x32: "<link / abs url>"
-  #   apple_touch_icon: "<link / abs url>"
-  #   safari_pinned_tab: "<link / abs url>"
+  assets:
+    # Versioned URLs force browsers to refresh cached favicons after changes.
+    favicon: "/favicon.ico?v=20261110-3"
+    favicon16x16: "/favicon-16x16.png?v=20261110-3"
+    favicon32x32: "/favicon-32x32.png?v=20261110-3"
+    apple_touch_icon: "/apple-touch-icon.png?v=20261110-3"
+    safari_pinned_tab: "/safari-pinned-tab.svg?v=20261110-3"
 
   # label:
   #   text: "Home"
@@ -68,11 +85,6 @@ params:
     imageWidth: 150
     imageHeight: 150
     # imageTitle: my image
-    buttons:
-      - name: Posts
-        url: posts
-      # - name: Tags
-      #   url: tags
 
   # home-info mode
   # homeInfoParams:
@@ -82,6 +94,9 @@ params:
   socialIcons:
     - name: github
       url: "https://github.com/wolfm89"
+
+  footer:
+    text: "[Train Price Monitor](https://tpm.wolfgangmoser.eu)"
 
   # analytics:
   #   google:
@@ -119,9 +134,22 @@ outputs:
     - RSS
     - JSON # necessary for search
 
+related:
+  includeNewer: true
+  threshold: 80
+  toLower: false
+  indices:
+    - name: tags
+      weight: 100
+    - name: keywords
+      weight: 50
+    - name: date
+      weight: 10
+
 languages:
   en:
-    languageName: "English"
+    label: "English"
+    locale: "en-US"
     weight: 1
     taxonomies:
       category: categories
