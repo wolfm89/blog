@@ -73,13 +73,6 @@ params:
     imageWidth: 150
     imageHeight: 150
     # imageTitle: my image
-    buttons:
-      - name: Posts
-        url: posts
-      - name: Train Price Monitor
-        url: https://tpm.wolfgangmoser.eu
-      # - name: Tags
-      #   url: tags
 
   # home-info mode
   # homeInfoParams:
