@@ -435,6 +435,7 @@ body {
 }
 
 .copy-code {
+  color: var(--code-copy-fg) !important;
   background: color-mix(in srgb, var(--accent-strong) 80%, transparent);
 }
 
