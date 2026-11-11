@@ -46,6 +46,11 @@
     horizontal scroll position in localStorage ("menu-scroll-position") is removed.
     The menu never overflows, and nothing is stored on the visitor's device except
     the theme preference. Re-diff against themes/PaperMod after theme updates. */}}
+    try {
+        // Older versions of the blog left this key behind; remove it for returning visitors.
+        localStorage.removeItem("menu-scroll-position");
+    } catch (e) {}
+
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener("click", function (e) {
             e.preventDefault();
