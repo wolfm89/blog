@@ -63,13 +63,13 @@ The runtime URL handling and the Graph request helper are in [`teams.py`](https:
 
 Once I approved the consent link, the agent posted to my self-chat, the private conversation Teams exposes as `48:notes`. The message appeared under my name, not a flow bot's name, and the same connection listed my joined teams and channels across the tenant.
 
-## What surprised me
+## The mention trap
 
-The connector's high-level post action cannot create channel mentions. It converts `<at>email@example.com</at>` for users, but when I tested `<atChannel>` or `<atTeam>`, or passed a channel display name, it stripped the tags and posted plain text. Sending a raw Graph `chatMessage` payload through `/httprequest` fixed it.[^5] In the skill, you write `@[Ada Lovelace]`, `@[tag:on-call]`, `@[channel:General]`, or `@[team]` inline in HTML. The script resolves each target against the target team's channels, tags, and members, with a tenant user search as a fallback. It rewrites the placeholder, builds the Graph `mentions` array, and checks the response after sending to confirm that Teams attached every mention.
+The connector's high-level post action handles user mentions, but when I tested `<atChannel>` or `<atTeam>`, or passed a channel display name, it stripped the tags and posted plain text. That is why the skill sends a raw Graph `chatMessage` payload through `/httprequest` instead.[^5] It resolves `@[Ada Lovelace]`, `@[tag:on-call]`, `@[channel:General]`, and `@[team]` locally, then checks the response to confirm that Teams kept each mention.
 
-Custom tenant emojis work the same way: the script harvests them while reading and expands `:shortcode:` in HTML.
+## A digest the agent can read
 
-The digest was the other surprise. A dozen project and deployment channels plus your 1:1 chats can burn tens of thousands of tokens if you feed the agent raw Graph JSON. The `digest` subcommand reads channels you name with `--channel "Team/Channel"` or list in an optional watchlist, plus your active 1:1, group, and meeting chats. It emits a header and one JSON object per post, reply, chat, and chat message, under 1,900 characters per line, with open hints (`mention`, `team`, `question`, `check`). There is no alert or pull-request logic in the script; the watchlist is just a grouped list of team and channel names.
+A dozen project and deployment channels plus your 1:1 chats can burn tens of thousands of tokens if you feed the agent raw Graph JSON. The `digest` subcommand reads channels you name with `--channel "Team/Channel"` or list in an optional watchlist, plus your active 1:1, group, and meeting chats. It emits a header and one JSON object per post, reply, chat, and chat message, under 1,900 characters per line, with open hints (`mention`, `team`, `question`, `check`).
 
 ## What this means for admins
 
