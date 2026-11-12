@@ -65,7 +65,7 @@ Once I approved the consent link, the agent posted to my self-chat, the private 
 
 ## What surprised me
 
-The connector's high-level post action cannot create channel mentions. It converts `<at>email@example.com</at>` for users, but when we tested `<atChannel>` or `<atTeam>`, or passed a channel display name, it stripped the tags and posted plain text. Sending a raw Graph `chatMessage` payload through `/httprequest` fixed it.[^5] In the skill, you write `@[Ada Lovelace]`, `@[tag:on-call]`, `@[channel:General]`, or `@[team]` inline in HTML. The script resolves each target against the target team's channels, tags, and members, with a tenant user search as a fallback. It rewrites the placeholder, builds the Graph `mentions` array, and checks the response after sending to confirm that Teams attached every mention.
+The connector's high-level post action cannot create channel mentions. It converts `<at>email@example.com</at>` for users, but when I tested `<atChannel>` or `<atTeam>`, or passed a channel display name, it stripped the tags and posted plain text. Sending a raw Graph `chatMessage` payload through `/httprequest` fixed it.[^5] In the skill, you write `@[Ada Lovelace]`, `@[tag:on-call]`, `@[channel:General]`, or `@[team]` inline in HTML. The script resolves each target against the target team's channels, tags, and members, with a tenant user search as a fallback. It rewrites the placeholder, builds the Graph `mentions` array, and checks the response after sending to confirm that Teams attached every mention.
 
 Custom tenant emojis work the same way: the script harvests them while reading and expands `:shortcode:` in HTML.
 
