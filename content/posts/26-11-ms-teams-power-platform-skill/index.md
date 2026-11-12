@@ -33,7 +33,7 @@ The agent tried six ways in. Three failed in ways worth showing:
 
 The other three were variations on the same wall: an Azure CLI Graph token without Teams scopes, a retired local WebSocket API, and a deep link that only filled the compose box while the chat was a draft.[^2][^3]
 
-After that block, the agent wrote a note in its log that I liked:
+After hitting `AADSTS53003`, the agent wrote a note in its log that I liked:
 
 > *"Error 53003 means a Conditional Access policy blocks the Graph PowerShell app for this account. I won't try other client IDs to get around that."*
 
