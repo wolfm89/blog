@@ -57,6 +57,8 @@ The new route has three moves:
 2. Find your `shared_teams` connection in `Default-<tenantId>`, repair it through `getConsentLink` if it is expired, and read the runtime URL from `testLinks[0].requestUri`.
 3. Send Graph requests through `POST {runtimeBase}/httprequest` with an `https://apihub.azure.com` bearer token.
 
+The runtime URL handling and the Graph request helper are in [`teams.py`](https://github.com/wolfm89/ms-teams-skill/blob/main/skills/ms-teams/scripts/teams.py).
+
 ## The first message
 
 Once I approved the consent link, the agent posted to my self-chat, the private conversation Teams exposes as `48:notes`. The message appeared under my name, not a flow bot's name, and the same connection listed my joined teams and channels across the tenant.
@@ -71,7 +73,13 @@ The digest was the other surprise. A dozen project and deployment channels plus 
 
 ## What this means for admins
 
-Locking down third-party Graph app consent and device-code flows in Microsoft Entra ID does not close this path if the Power Platform environment stays at tenant defaults. Three conditions do most of the work: a Power Automate license and access to the Default environment, DLP allowing `shared_teams`, and Conditional Access allowing `az` tokens for the Power Platform audiences. The full list of five conditions is in the technical notes.
+Locking down third-party Graph app consent and device-code flows in Microsoft Entra ID does not close this path if the Power Platform environment stays at tenant defaults. Five conditions keep it open:
+
+- **Power Automate license.** Included with standard M365 E3, E5, and Business plans (`Power Automate for Office 365`). Remove the Power Automate service plan for users who do not need workflow automation.
+- **Maker access to `Default-<tenantId>`.** Licensed users are automatically assigned the Environment Maker role in the Default environment, and Microsoft does not allow removing that role from the Default environment ([overview](https://learn.microsoft.com/en-us/power-platform/admin/environments-overview), [migration guidance](https://learn.microsoft.com/en-us/power-platform/guidance/white-papers/migrating-from-default-environment)).
+- **`shared_teams` allowed by DLP.** Microsoft Teams is a standard productivity connector; blocking it breaks Teams Workflows and Approvals. Scope Power Platform DLP policies and audit active `shared_teams` connections in the Power Platform Admin Center.
+- **`az login` tokens for Power Platform.** Engineers use Azure CLI for cloud work. Include Power Platform resource audiences (`service.powerapps.com`, `apihub.azure.com`) in Conditional Access policies. Power Platform service principals are not always covered by the generic "Office 365" CA target group ([Microsoft Learn](https://learn.microsoft.com/en-us/power-platform/guidance/adoption/conditional-access#embedded-flow-authentication-and-conditional-access)).
+- **First-party connector consent.** `consent.azure-apim.net` (Azure API Connections) is a pre-authorized first-party Microsoft service principal. Monitor connection creation and consent events in Microsoft Purview and Power Platform activity logs.
 
 ## Open-sourcing the skill
 
@@ -112,49 +120,6 @@ python3 ~/.agents/skills/ms-teams/scripts/teams.py onboard --smoke
 ```
 
 Once onboarded, you can ask your coding agent for a morning Teams digest, search a channel for the thread where a decision was made, or preview a channel post with `@mentions` directly from your terminal.
-
-{{< details summary="Technical notes: the five calls, the paging trap, and the five conditions" >}}
-
-**The five calls.** The three moves above break down into five documented calls under your own signed-in identity:
-
-1. Sign in with `az login` in your normal browser using the first-party Azure CLI client.
-2. List your Teams connections in `Default-<tenantId>` by calling `GET /providers/Microsoft.PowerApps/apis/shared_teams/connections` on `https://api.powerapps.com` with a token for `https://service.powerapps.com/`.
-3. If an existing `shared_teams` connection is expired or unauthenticated, repair it via `POST .../connections/<id>/getConsentLink`. Approving that first-party `consent.azure-apim.net` URL flips the connection to `Connected` without triggering a third-party "Need admin approval" prompt.
-4. Read the connection's `testLinks[0].requestUri` to get the runtime base URL:
-
-   ```text
-   https://<env>.environment.api.powerplatform.com/connectors/runtime/invoke/scalegroups/<region>/shards/<n>/apis/teams/connections/<connectionId>
-   ```
-
-5. Send Graph requests through `POST {runtimeBase}/httprequest` using an `https://apihub.azure.com` bearer token from `az`:
-
-   ```python
-   def graph(self, method: str, uri: str, body: dict | None = None):
-       """Forward a Microsoft Graph request through the shared_teams connector."""
-       headers = {
-           "Authorization": "Bearer " + az_token("https://apihub.azure.com"),
-           "User-Agent": "ms-teams-skill",
-           "Uri": uri,
-           "Method": method,
-       }
-       data = b""
-       if method != "GET":
-           headers["ContentType"] = "application/json"
-           data = json.dumps(body or {}, ensure_ascii=False).encode()
-       return http("POST", self.base + "/httprequest", headers, data)
-   ```
-
-**Why channel paging is weird.** When you fetch channel messages via `/teams/{id}/channels/{id}/messages?$expand=replies`, Graph orders top-level posts by `lastModifiedDateTime` instead of `createdDateTime` ([Microsoft Learn](https://learn.microsoft.com/en-us/graph/api/channel-list-messages?view=graph-rest-1.0)). A reply to a week-old thread moves that thread to the top of page 1. If a script stops paging as soon as it sees a root message older than `--since`, it misses active threads. The digest keeps paging until an entire page has `lastModifiedDateTime < since`, then keeps any older thread that got replies inside the window.
-
-**The five conditions.** All five must hold for this route to work:
-
-- **Power Automate license.** Included with standard M365 E3, E5, and Business plans (`Power Automate for Office 365`). Remove the Power Automate service plan for users who do not need workflow automation.
-- **Maker access to `Default-<tenantId>`.** Licensed users are automatically assigned the Environment Maker role in the Default environment, and Microsoft does not allow removing that role from the Default environment ([overview](https://learn.microsoft.com/en-us/power-platform/admin/environments-overview), [migration guidance](https://learn.microsoft.com/en-us/power-platform/guidance/white-papers/migrating-from-default-environment)).
-- **`shared_teams` allowed by DLP.** Microsoft Teams is a standard productivity connector; blocking it breaks Teams Workflows and Approvals. Scope Power Platform DLP policies and audit active `shared_teams` connections in the Power Platform Admin Center.
-- **`az login` tokens for Power Platform.** Engineers use Azure CLI for cloud work. Include Power Platform resource audiences (`service.powerapps.com`, `apihub.azure.com`) in Conditional Access policies. Power Platform service principals are not always covered by the generic "Office 365" CA target group ([Microsoft Learn](https://learn.microsoft.com/en-us/power-platform/guidance/adoption/conditional-access#embedded-flow-authentication-and-conditional-access)).
-- **First-party connector consent.** `consent.azure-apim.net` (Azure API Connections) is a pre-authorized first-party Microsoft service principal. Monitor connection creation and consent events in Microsoft Purview and Power Platform activity logs.
-
-{{< /details >}}
 
 [^1]: [Microsoft Entra authentication and authorization error codes](https://learn.microsoft.com/en-us/entra/identity-platform/reference-error-codes): `AADSTS53003` (`BlockedByConditionalAccess`) indicates that token issuance was blocked by a Conditional Access policy.
 [^2]: [Teams `localhost:8124` retirement (`MC1266901`)](https://callstate.app/docs/teams-8124-retired.html): Microsoft retired the local `ws://127.0.0.1:8124` meeting-control WebSocket API on June 30, 2026.
