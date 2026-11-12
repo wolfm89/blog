@@ -51,7 +51,7 @@ The diagram below compares the route that failed with the route that worked. Pat
 
 {{< figure src="images/teams-connector-path.svg" title="Path A: a standard Graph client (top). Path B: the first-party Power Platform connector runtime (bottom)." align="center" >}}
 
-The route is three moves:
+The new route has three moves:
 
 1. Sign in with `az login` in your normal browser. The skill never stores tokens on disk; `az account get-access-token` mints short-lived tokens in memory on each run.
 2. Find your `shared_teams` connection in `Default-<tenantId>`, repair it through `getConsentLink` if it is expired, and read the runtime URL from `testLinks[0].requestUri`.
@@ -59,7 +59,7 @@ The route is three moves:
 
 ## The first message
 
-Once I approved the consent link, the agent posted to `48:notes`. The message appeared under my name, not a flow bot's name, and the same connection listed my joined teams and channels across the tenant.
+Once I approved the consent link, the agent posted to my self-chat, the private conversation Teams exposes as `48:notes`. The message appeared under my name, not a flow bot's name, and the same connection listed my joined teams and channels across the tenant.
 
 ## What surprised me
 
