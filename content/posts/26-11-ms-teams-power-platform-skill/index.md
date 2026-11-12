@@ -13,11 +13,9 @@ I gave my coding agent one sentence:
 
 > *"You are running in WSL on Windows 11. Microsoft Teams is open on the desktop. Find a way to read and send a message to my own self-chat."*
 
-Fifteen minutes and six dead ends later, it posted to my self-chat as me. The route was not a direct Microsoft Graph client. It was the first-party Power Platform Microsoft Teams connector, called directly through its runtime without a Power Automate flow.
+Fifteen minutes and six dead ends later, it posted to my self-chat as me. The agent sent its Graph calls through the first-party Power Platform Microsoft Teams connector, using the runtime directly without a Power Automate flow.
 
-The rest of this post is how it happened, what broke, and what it means for Microsoft 365 administrators.
-
-## The wall
+## The Graph admin-consent wall
 
 When you work in an AI coding agent like [OpenCode](https://opencode.ai) or Claude Code all day, Microsoft Teams is where project context tends to hide. Review requests, deployment notices, incident threads, and quick architectural questions happen in Teams channels or 1:1 chats, while your code, git history, and terminal sit in WSL.
 
@@ -71,7 +69,7 @@ The connector's high-level post action handles user mentions, but when I tested 
 
 A dozen project and deployment channels plus your 1:1 chats can burn tens of thousands of tokens if you feed the agent raw Graph JSON. The `digest` subcommand reads channels you name with `--channel "Team/Channel"` or list in an optional watchlist, plus your active 1:1, group, and meeting chats. It emits a header and one JSON object per post, reply, chat, and chat message, under 1,900 characters per line, with open hints (`mention`, `team`, `question`, `check`).
 
-## What this means for admins
+## What this means for Microsoft 365 admins
 
 Locking down third-party Graph app consent and device-code flows in Microsoft Entra ID does not close this path if the Power Platform environment stays at tenant defaults. Five conditions keep it open:
 
@@ -91,7 +89,7 @@ Because an agent using your Teams connection posts under your name, the CLI enfo
 
 1. Every write command (`send`, `reply`, `edit`, `delete`, `react`, `unreact`, `create-chat`, `create-meeting`) runs as a dry-run unless `--send` is passed. A dry-run resolves every `@[...]` mention locally and prints the HTML, plain text, and resolved recipients that would be sent. The skill instructions require the agent to show that preview and wait for your confirmation in chat before adding `--send`. Creating a chat makes it visible to its members, and Teams only lets tenant admins delete chats; creating a meeting with no attendees notifies nobody.
 2. `edit` and `delete` fetch the target message first and exit with code `3` if the message author's Entra object ID does not match your user ID.
-3. No tokens are written to disk. `az account get-access-token` mints tokens in memory per run. Connection metadata and the team, channel, member, and custom-emoji caches live per tenant under `~/.cache/ms-teams/<tenantId>/` with mode `0600`. The only optional configuration file is `~/.config/ms-teams/watchlist.json`, used by `digest`.
+3. The CLI keeps tokens in memory and never writes them to disk. `az account get-access-token` mints a short-lived token per run. Connection metadata and the team, channel, member, and custom-emoji caches live per tenant under `~/.cache/ms-teams/<tenantId>/` with mode `0600`. The only optional configuration file is `~/.config/ms-teams/watchlist.json`, used by `digest`.
 
 ### Installing the skill
 
