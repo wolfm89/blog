@@ -47,7 +47,7 @@ When a Power Automate flow runs a Microsoft Teams action, the Flow Engine (`serv
 
 You do not need a flow to call your own connection. Every connection object in your tenant's default Power Platform environment (`Default-<tenantId>`) has a `testLinks` property pointing to its live connector runtime endpoint, and the `shared_teams` connector has a built-in [Send a Microsoft Graph HTTP request](https://learn.microsoft.com/en-us/connectors/teams/#send-a-microsoft-graph-http-request) operation that forwards delegated Graph calls.[^4] That is the same endpoint the Power Automate portal calls when it populates team and channel dropdowns in the flow designer.
 
-The diagram compares the route that failed with the route that worked. Path A, at the top, is a standard Graph client or third-party Teams MCP server asking Microsoft Entra for Teams scopes. Path B, below it, is the first-party Power Platform connector runtime: `az` gets a Power Platform token, and the runtime uses your delegated `shared_teams` connection to call Graph.
+The diagram below compares the route that failed with the route that worked. Path A, at the top, is a standard Graph client or third-party Teams MCP server asking Microsoft Entra for Teams scopes. Path B, below it, is the first-party Power Platform connector runtime.
 
 {{< figure src="images/teams-connector-path.svg" title="Path A: a standard Graph client (top). Path B: the first-party Power Platform connector runtime (bottom)." align="center" >}}
 
