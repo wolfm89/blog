@@ -462,6 +462,35 @@ details.toc a:hover {
   color: var(--accent);
 }
 
+.footnotes {
+  margin-top: 2.5rem;
+  color: var(--secondary);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.footnotes hr {
+  margin: 0 0 1rem;
+}
+
+.footnotes ol {
+  padding-inline-start: 1.25rem;
+}
+
+.footnotes li {
+  margin: 0.35rem 0;
+}
+
+.footnotes p {
+  margin: 0;
+}
+
+.footnote-ref {
+  font-size: 0.75em;
+  font-weight: 600;
+  text-decoration: none;
+}
+
 .post-tags {
   gap: 8px;
 }
