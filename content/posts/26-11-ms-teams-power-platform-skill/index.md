@@ -28,12 +28,12 @@ The agent tried six ways in. Three failed in ways worth showing:
 | Attempt | Route | What happened |
 |---|---|---|
 | 1 | Microsoft Graph PowerShell (`Connect-MgGraph`) | Fails from WSL because Web Account Manager requires a native Windows window handle (`A window handle must be configured`). |
-| 2 | Graph device-code flow (`14d82eec-…`) | Blocked by Microsoft Entra Conditional Access (`AADSTS53003`), which restricts device-code authentication.[^1] |
+| 2 | Graph device-code flow (`14d82eec-…`) | Blocked by Conditional Access with `AADSTS53003` (`BlockedByConditionalAccess`). `AADSTS` is the Microsoft Entra sign-in error prefix; this code means a policy blocked the token.[^1] |
 | 3 | Graph browser auth code + PKCE | Passes Conditional Access, then stops at "Need admin approval". Standard users cannot consent to `Chat.ReadWrite` or `ChannelMessage.Send` on unverified or command-line client apps. |
 
 The other three were variations on the same wall: an Azure CLI Graph token without Teams scopes, a retired local WebSocket API, and a deep link that only filled the compose box while the chat was a draft.[^2][^3]
 
-After hitting `AADSTS53003`, the agent wrote a note in its log that I liked:
+After that block, the agent wrote a note in its log that I liked:
 
 > *"Error 53003 means a Conditional Access policy blocks the Graph PowerShell app for this account. I won't try other client IDs to get around that."*
 
