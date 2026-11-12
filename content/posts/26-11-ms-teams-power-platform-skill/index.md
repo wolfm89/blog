@@ -93,7 +93,7 @@ Turning that first test call into a daily CLI tool exposed three quirks in the T
 
 The Teams connector's `PostMessageToConversation` action converts `<at>email@example.com</at>` into a user mention, but when we tested `<atChannel>` or `<atTeam>` tokens, or passed a channel display name, the connector stripped the tags and posted plain text without notifying anyone.
 
-Sending a raw Graph `chatMessage` payload through `/httprequest` to `/v1.0/teams/{teamId}/channels/{channelId}/messages` fixed it.[^5] In the skill, you write `@[Ada Lovelace]`, `@[tag:on-call]`, `@[channel:general]`, or `@[team]` inline in HTML. The script resolves each target against cached team and channel metadata, rewrites the placeholder to `<at id="N">Name</at>`, builds the Graph `mentions` array (`aadUser`, `tag`, or `conversation`), and checks the HTTP response after sending to confirm that Teams attached every mention.
+Sending a raw Graph `chatMessage` payload through `/httprequest` to `/v1.0/teams/{teamId}/channels/{channelId}/messages` fixed it.[^5] In the skill, you write `@[Ada Lovelace]`, `@[tag:on-call]`, `@[channel:General]`, or `@[team]` inline in HTML. The script resolves each target against the target team's channels, tags, and members, with a tenant user search as a fallback. It rewrites the placeholder to `<at id="N">Name</at>`, builds the Graph `mentions` array (`aadUser`, `tag`, or `conversation`), and checks the HTTP response after sending to confirm that Teams attached every mention. Standard Unicode emojis work directly; custom tenant emojis harvested while reading can be written as `:shortcode:` and are expanded to `<customemoji>` tags.
 
 ### 2. Channel replies break `createdDateTime` paging
 
@@ -103,19 +103,17 @@ If a script stops paging as soon as it sees a root message whose `createdDateTim
 
 ### 3. Keeping morning digests inside an agent's context budget
 
-Asking an agent to summarize a dozen engineering, deployment, pull-request, and alert channels plus your 1:1 chats can burn tens of thousands of tokens if you feed it raw Graph JSON.
+Asking an agent to summarize a dozen project and deployment channels plus your 1:1 chats can burn tens of thousands of tokens if you feed it raw Graph JSON.
 
-The `digest` subcommand (`teams.py digest --since last-workday`) shrinks the output before the agent reads it:
+The `digest` subcommand (`teams.py digest --since last-workday`) reads the channels you name with `--channel "Team/Channel"` or list in an optional watchlist at `~/.config/ms-teams/watchlist.json`, plus your active 1:1, group, and meeting chats. It emits a header and one JSON object per post, reply, chat, and chat message, with each line capped under 1,900 characters so the agent's file-read tool can read the whole digest in one call without truncation.
 
-- Alert channels (`"aggregate": true` in `config.json`) are counted by severity and state (`P1` to `P5`, `Triggered` vs. `Recovered`, and the top 5 recurring alerts) instead of listing every automated alert post.
-- Pull request channels are deduplicated by PR URL across reposts. The script infers review state (`reviewOpenForMe`, `approved`, `merged`, `handledByOther`) from thread reactions (👀, 💬, ✅) and keeps only PRs waiting on you or authored by you.
-- Every JSONL line is capped under 1,900 characters so the agent's file-read tool can read the whole digest in one call without line truncation.
+The records also carry deterministic open hints (`mention`, `team`, `question`, `check`), so the agent can sort what needs an answer from what is only background. There is no alert or pull-request logic in the script; the watchlist is just a grouped list of team and channel names.
 
 ## Security and governance
 
-This path stays inside the signed-in user's permissions. The connector runs under your own delegated identity, so it cannot read a channel you have not joined, open another user's private chats, or perform any action you cannot already do in the Teams app. Its `HttpRequest` passthrough is also narrower than raw Graph: the connector only accepts URI paths starting with `/v1.0/` or `/beta/` followed by `teams`, `me`, or `users`, and only for Teams resources (`channels`, `chats`, `messages`, `installedApps`, `pinnedMessages`, `onlineMeetings`).[^4] Directory, mail, or SharePoint paths return HTTP 400.
+This path stays inside the signed-in user's permissions. The connector runs under your own delegated identity, so it cannot read a channel you have not joined, open another user's private chats, or perform any action you cannot already do in the Teams app. Its `HttpRequest` passthrough is also narrower than raw Graph: the connector only accepts URI paths starting with `/v1.0/` or `/beta/` followed by `teams`, `me`, or `users`, and only for Teams resources such as `channels`, `chats`, `messages`, `installedApps`, `pinnedMessages`, and `onlineMeetings`.[^4] Directory, mail, or SharePoint paths return HTTP 400.
 
-For cloud architects and Microsoft 365 administrators, the interesting part is how the two control planes interact. Locking down third-party Graph app consent and device-code flows in Microsoft Entra ID does not restrict first-party Power Platform connectors if the Power Platform environment stays at tenant defaults.
+Cloud architects and Microsoft 365 administrators have to reason about both control planes: locking down third-party Graph app consent and device-code flows in Microsoft Entra ID does not restrict first-party Power Platform connectors if the Power Platform environment stays at tenant defaults.
 
 All five conditions below must hold for this route to work:
 
@@ -129,13 +127,15 @@ All five conditions below must hold for this route to work:
 
 ## Open-sourcing `ms-teams-skill`
 
-I packaged a sanitized, zero-dependency version of the skill in [`wolfm89/ms-teams-skill`](https://github.com/wolfm89/ms-teams-skill).
+I packaged a customer-agnostic, zero-dependency version of the skill in [`wolfm89/ms-teams-skill`](https://github.com/wolfm89/ms-teams-skill) under GPL-3.0-or-later. The first release is [`v0.1.0`](https://github.com/wolfm89/ms-teams-skill/releases/tag/v0.1.0), and the skill is listed on [skills.sh](https://skills.sh/wolfm89/ms-teams-skill).
+
+The script discovers the tenant, user, and `shared_teams` connection from the `az` token and caches them per tenant under `~/.cache/ms-teams/<tenantId>/`, so there is no config file to create. Pass `--tenant <tenantId_or_domain>` (or set `MS_TEAMS_TENANT`) when you work across tenants.
 
 Because an agent using your Teams connection posts under your name, the CLI enforces three guardrails:
 
-1. Every write command (`send`, `reply`, `edit`, `delete`, `react`, `unreact`) runs as a dry-run unless `--send` is passed. A dry-run resolves every `@[...]` mention locally and prints the HTML, plain text, and recipient list that would be sent. The skill instructions require the agent to show that preview and wait for your confirmation in chat before adding `--send`.
+1. Every write command (`send`, `reply`, `edit`, `delete`, `react`, `unreact`, `create-chat`, `create-meeting`) runs as a dry-run unless `--send` is passed. A dry-run resolves every `@[...]` mention locally and prints the HTML, plain text, and resolved recipients that would be sent. The skill instructions require the agent to show that preview and wait for your confirmation in chat before adding `--send`. Creating a chat makes it visible to its members, and Teams only lets tenant admins delete chats; creating a meeting with no attendees notifies nobody.
 2. `edit` and `delete` fetch the target message first and exit with code `3` if the message author's Entra object ID does not match your user ID.
-3. No tokens are written to disk. `az account get-access-token` mints tokens in memory per run, and `config.json` (mode `0600`) stores only tenant, environment, connection, and channel IDs.
+3. No tokens are written to disk. `az account get-access-token` mints tokens in memory per run. Connection metadata and the team, channel, member, and custom-emoji caches live per tenant under `~/.cache/ms-teams/<tenantId>/` with mode `0600`. The only optional configuration file is `~/.config/ms-teams/watchlist.json`, used by `digest`.
 
 ### Installing the skill
 
@@ -149,22 +149,21 @@ Or via the GitHub CLI (`gh skill`) or Claude Code's plugin marketplace:
 
 ```bash
 # GitHub CLI
-gh skill install wolfm89/ms-teams-skill
+gh skill install wolfm89/ms-teams-skill ms-teams --scope user --pin v0.1.0
 
 # Inside Claude Code
 /plugin marketplace add wolfm89/ms-teams-skill
 /plugin install ms-teams@ms-teams-skill
 ```
 
-After installing, sign in with `az login` and run the onboarding command once:
+After installing, sign in with `az login` and check the setup (adjust the path to the directory your installer used):
 
 ```bash
-python3 ~/.agents/skills/ms-teams/scripts/teams.py onboard \
-  --alias general="Engineering/General" \
-  --smoke
+python3 ~/.agents/skills/ms-teams/scripts/teams.py doctor
+python3 ~/.agents/skills/ms-teams/scripts/teams.py onboard --smoke
 ```
 
-Once onboarded, you can ask your coding agent for a morning Teams digest, check which pull requests are waiting on your review, or preview a channel post with `@mentions` directly from your terminal.
+Once onboarded, you can ask your coding agent for a morning Teams digest, search a channel for the thread where a decision was made, or preview a channel post with `@mentions` directly from your terminal.
 
 [^1]: [Microsoft Entra authentication and authorization error codes](https://learn.microsoft.com/en-us/entra/identity-platform/reference-error-codes): `AADSTS53003` (`BlockedByConditionalAccess`) indicates that token issuance was blocked by a Conditional Access policy.
 [^2]: [Teams `localhost:8124` retirement (`MC1266901`)](https://callstate.app/docs/teams-8124-retired.html): Microsoft retired the local `ws://127.0.0.1:8124` meeting-control WebSocket API on June 30, 2026.
