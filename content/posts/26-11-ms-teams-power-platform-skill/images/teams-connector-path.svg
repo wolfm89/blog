@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 430" width="100%" height="auto" role="img" aria-labelledby="title desc">
+  <title id="title">Direct Graph App Path vs. Power Platform Teams Connector Runtime Path</title>
+  <desc id="desc">Comparison showing how standard third-party or CLI Graph apps stop at Conditional Access (53003) or Admin Consent for Chat/Channel scopes, while Azure CLI tokens for Power Platform invoke the first-party shared_teams connector runtime and its Microsoft Graph HttpRequest passthrough under the user's own delegated permissions.</desc>
+  <defs>
+    <style>
+      .bg { fill: #fffdf8; stroke: #d8d1bf; stroke-width: 1.5; rx: 14; }
+      .lane-blocked { fill: #fbf3f0; stroke: #dfb8ad; stroke-width: 1.5; stroke-dasharray: 5 4; rx: 10; }
+      .lane-ok { fill: #f2f6ee; stroke: #b8cfb0; stroke-width: 1.5; rx: 10; }
+      .box { fill: #ffffff; stroke: #5f6a5a; stroke-width: 1.5; rx: 8; }
+      .box-accent { fill: #dde7cd; stroke: #3f6b45; stroke-width: 1.8; rx: 8; }
+      .box-blocked { fill: #fff8f6; stroke: #b84a39; stroke-width: 1.8; rx: 8; }
+      .title { font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 15px; font-weight: 600; fill: #1c2219; }
+      .lane-title { font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+      .label { font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 13px; font-weight: 600; fill: #1c2219; }
+      .sub { font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 11.5px; fill: #495245; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; fill: #2f5436; }
+      .mono-err { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; fill: #9e3324; }
+      .edge-ok { stroke: #3f6b45; stroke-width: 2; fill: none; marker-end: url(#arrow-ok); }
+      .edge-err { stroke: #b84a39; stroke-width: 2; stroke-dasharray: 4 3; fill: none; marker-end: url(#arrow-err); }
+    </style>
+    <marker id="arrow-ok" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#3f6b45"/>
+    </marker>
+    <marker id="arrow-err" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#b84a39"/>
+    </marker>
+  </defs>
+
+  <rect x="6" y="6" width="908" height="418" class="bg"/>
+
+  <!-- Top lane: Standard Graph App / MCP path -->
+  <rect x="26" y="24" width="868" height="132" class="lane-blocked"/>
+  <text x="44" y="46" class="lane-title" fill="#9e3324">Path A — Standard Graph CLI / Third-Party Teams MCP Server</text>
+
+  <rect x="44" y="62" width="185" height="74" class="box"/>
+  <text x="136" y="88" text-anchor="middle" class="label">Coding Agent / CLI</text>
+  <text x="136" y="106" text-anchor="middle" class="sub">Requests Graph scopes</text>
+  <text x="136" y="123" text-anchor="middle" class="mono-err">Chat.ReadWrite</text>
+
+  <path d="M 229 99 L 308 99" class="edge-err"/>
+
+  <rect x="310" y="62" width="250" height="74" class="box-blocked"/>
+  <text x="435" y="86" text-anchor="middle" class="label" fill="#9e3324">Microsoft Entra ID</text>
+  <text x="435" y="104" text-anchor="middle" class="mono-err">1. Device code → AADSTS53003</text>
+  <text x="435" y="121" text-anchor="middle" class="mono-err">2. Browser PKCE → Admin Approval</text>
+
+  <path d="M 560 99 L 642 99" class="edge-err"/>
+
+  <rect x="644" y="62" width="228" height="74" class="box"/>
+  <text x="758" y="92" text-anchor="middle" class="label" fill="#5f6a5a">Microsoft Teams / Graph</text>
+  <text x="758" y="112" text-anchor="middle" class="sub">Unreachable without tenant admin</text>
+
+  <!-- Bottom lane: Power Platform Connector Runtime path -->
+  <rect x="26" y="176" width="868" height="228" class="lane-ok"/>
+  <text x="44" y="198" class="lane-title" fill="#2f5436">Path B — Power Platform First-Party Connector Runtime (ms-teams-skill)</text>
+
+  <!-- Step 1: Agent + az login -->
+  <rect x="44" y="216" width="185" height="164" class="box"/>
+  <text x="136" y="244" text-anchor="middle" class="label">Coding Agent</text>
+  <text x="136" y="262" text-anchor="middle" class="mono">scripts/teams.py</text>
+  <line x1="60" y1="276" x2="212" y2="276" stroke="#d8d1bf" stroke-width="1"/>
+  <text x="136" y="296" text-anchor="middle" class="sub">Uses interactive browser</text>
+  <text x="136" y="313" text-anchor="middle" class="mono">az login</text>
+  <text x="136" y="334" text-anchor="middle" class="sub">Mints tokens in memory:</text>
+  <text x="136" y="351" text-anchor="middle" class="mono">service.powerapps.com</text>
+  <text x="136" y="366" text-anchor="middle" class="mono">apihub.azure.com</text>
+
+  <!-- Arrows from Step 1 -->
+  <path d="M 229 258 L 288 258" class="edge-ok"/>
+  <path d="M 229 338 L 288 338" class="edge-ok"/>
+
+  <!-- Step 2a: Power Apps API (Discovery & Consent) -->
+  <rect x="290" y="216" width="278" height="76" class="box"/>
+  <text x="429" y="239" text-anchor="middle" class="label">1. Connection Discovery &amp; Repair</text>
+  <text x="429" y="257" text-anchor="middle" class="mono">api.powerapps.com (.../shared_teams)</text>
+  <text x="429" y="275" text-anchor="middle" class="sub">Finds Default-&lt;tenant&gt; conn &amp; getConsentLink</text>
+
+  <!-- Step 2b: API Hub Connector Runtime -->
+  <rect x="290" y="304" width="278" height="76" class="box-accent"/>
+  <text x="429" y="327" text-anchor="middle" class="label">2. Connector Runtime Invoke</text>
+  <text x="429" y="345" text-anchor="middle" class="mono">POST {runtimeBase}/httprequest</text>
+  <text x="429" y="363" text-anchor="middle" class="sub">First-party Microsoft connector (no flow needed)</text>
+
+  <path d="M 429 292 L 429 302" class="edge-ok"/>
+  <path d="M 568 342 L 642 342" class="edge-ok"/>
+
+  <!-- Step 3: Microsoft Graph / Teams -->
+  <rect x="644" y="216" width="228" height="164" class="box-accent"/>
+  <text x="758" y="246" text-anchor="middle" class="label">3. Microsoft Graph &amp; Teams</text>
+  <text x="758" y="266" text-anchor="middle" class="sub">Delegated as signed-in user</text>
+  <line x1="664" y1="280" x2="852" y2="280" stroke="#b8cfb0" stroke-width="1"/>
+  <text x="758" y="302" text-anchor="middle" class="mono">/teams/{id}/channels/...</text>
+  <text x="758" y="321" text-anchor="middle" class="mono">/me/chats/{id}/messages</text>
+  <text x="758" y="340" text-anchor="middle" class="mono">/users?$search=...</text>
+  <text x="758" y="362" text-anchor="middle" class="sub">Read, post, reply, @mention, react</text>
+</svg>
